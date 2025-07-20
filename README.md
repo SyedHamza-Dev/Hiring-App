@@ -3,6 +3,7 @@ Demo Link: https://hiring-app-hazel.vercel.app/
 **LOGIN CREDENTIALS**
 
 USERNAME: ADMIN
+
 PASSWORD: PASSWORD
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
