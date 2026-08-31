@@ -16,7 +16,7 @@ PASSWORD: password
 1. **Upload** — a PDF resume is parsed entirely in the browser with `pdfjs-dist`; its raw text is extracted, no server upload of the file itself is needed.
 2. **Embed** — the job description (title, responsibilities, qualifications, required skills) and each resume's text are embedded with `sentence-transformers/all-MiniLM-L6-v2`, run in a Next.js API route via `@xenova/transformers`.
 3. **Score** — the cosine similarity between the job embedding and each resume embedding produces the match percentage. This is a real, computed number — not a random or hardcoded value.
-4. **Explain** — the app also does simple keyword matching to show exactly which required skills were found (and missing) in the resume text, plus surfaces the single most relevant sentence from the resume as evidence for the score.
+4. **Explain** — the score is turned into a plain-language verdict ("Strong match... the resume covers React, TypeScript, Node.js" / "Weak match... doesn't mention X, Y, Z"), backed by simple keyword matching against the required skills and the single most relevant sentence pulled from the resume as evidence. The technical detail (model name, cosine similarity) is tucked into a collapsible note instead of being the headline.
 
 ![Candidate detail modal showing semantic match analysis, matched skills, and the resume's most relevant line](public/demo-detail.png)
 
@@ -31,10 +31,12 @@ This is applied NLP/embeddings, not a custom-trained model — the same techniqu
 - Real PDF text extraction (client-side, no file upload to a server)
 - Embedding-based semantic match scoring (`all-MiniLM-L6-v2`, cosine similarity)
 - Skill-level match/gap breakdown per candidate
+- Plain-language match verdict, not just a bare percentage
 - Evidence snippet: the most relevant line pulled straight from the resume
 - Job description CRUD (create, edit, delete postings)
 - CV library with upload, search, and management
-- Polished dashboard UI built with shadcn/ui, Tailwind, and Framer Motion
+- A step indicator ties Job description → Select CVs → AI results into one visible flow
+- Minimal light UI built with shadcn/ui, Tailwind, and Framer Motion
 
 ## Tech Stack
 
