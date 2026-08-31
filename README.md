@@ -1,44 +1,76 @@
+# Smart CV Scanner
+
+A recruiting dashboard that ranks candidate resumes against a job description using **semantic similarity** — not keyword matching. Upload real PDF resumes, and each one gets a genuine match score computed from sentence embeddings, plus a breakdown of which required skills were actually found in the resume text.
+
 Demo Link: https://hiring-app-hazel.vercel.app/
 
 **LOGIN CREDENTIALS**
 
 USERNAME: admin
-
 PASSWORD: password
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## How the matching works
+
+![Ranked candidate results with real match scores](public/demo-results.png)
+
+1. **Upload** — a PDF resume is parsed entirely in the browser with `pdfjs-dist`; its raw text is extracted, no server upload of the file itself is needed.
+2. **Embed** — the job description (title, responsibilities, qualifications, required skills) and each resume's text are embedded with `sentence-transformers/all-MiniLM-L6-v2`, run in a Next.js API route via `@xenova/transformers`.
+3. **Score** — the cosine similarity between the job embedding and each resume embedding produces the match percentage. This is a real, computed number — not a random or hardcoded value.
+4. **Explain** — the app also does simple keyword matching to show exactly which required skills were found (and missing) in the resume text, plus surfaces the single most relevant sentence from the resume as evidence for the score.
+
+![Candidate detail modal showing semantic match analysis, matched skills, and the resume's most relevant line](public/demo-detail.png)
+
+In the screenshots above, a frontend-developer resume scores **78%** against a "Senior Frontend Developer (React, TypeScript, Node.js)" posting, while an unrelated data-engineer resume scores **27%** against the same posting — the ranking reflects genuine semantic relevance.
+
+## Honest scope
+
+This is applied NLP/embeddings, not a custom-trained model — the same technique production hiring tools use for candidate-job matching. The similarity score is a relative relevance signal for ranking candidates, not a calibrated pass/fail probability.
+
+## Features
+
+- Real PDF text extraction (client-side, no file upload to a server)
+- Embedding-based semantic match scoring (`all-MiniLM-L6-v2`, cosine similarity)
+- Skill-level match/gap breakdown per candidate
+- Evidence snippet: the most relevant line pulled straight from the resume
+- Job description CRUD (create, edit, delete postings)
+- CV library with upload, search, and management
+- Polished dashboard UI built with shadcn/ui, Tailwind, and Framer Motion
+
+## Tech Stack
+
+**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS, shadcn/ui (Radix), Framer Motion
+**PDF parsing:** pdfjs-dist (client-side)
+**Embeddings:** @xenova/transformers running `sentence-transformers/all-MiniLM-L6-v2` in a Next.js API route (`app/api/analyze-match`)
+
+## Project Structure
+
+```
+Hiring-App/
+├── app/
+│   ├── dashboard/          # tab-based dashboard (upload, jobs, candidates)
+│   ├── new-job/            # job posting form
+│   ├── scan-cv/            # CV scanner + results UI
+│   └── api/
+│       └── analyze-match/  # embeds job + resumes, returns ranked scores
+├── components/
+│   ├── UploadCV.tsx        # PDF upload + client-side text extraction
+│   ├── JobDescriptions.tsx
+│   └── ui/                 # shadcn/ui components
+└── lib/
+    └── pdf.ts              # browser-side PDF text extraction helper
+```
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Log in with the demo credentials above, upload a PDF resume from **CV Management**, create or pick a job posting, then **Scan CV** to see real semantic match scores.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+> The embedding model loads on the first API call and is cached in memory afterward — the first scan of a session is slower than the rest.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Author
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Syed Hamza Ali** — [GitHub](https://github.com/SyedHamza-Dev)

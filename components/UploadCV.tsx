@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckSquare, Cloud, Download, Plus, Square, Trash2, Upload } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { BiSolidFilePdf } from "react-icons/bi";
+import { extractPdfText } from "@/lib/pdf";
 
 interface CV {
   id: string;
@@ -16,6 +17,7 @@ interface CV {
   uploadDate: string;
   isLoading?: boolean;
   downloadUrl?: string;
+  text?: string;
 }
 
 const CircularProgress = ({ progress = 0 }) => (
@@ -75,33 +77,43 @@ const CVManagementSystem = () => {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setIsDialogOpen(false);
-      
-      const newCVs = Array.from(e.target.files).map(file => ({
+
+      const files = Array.from(e.target.files);
+
+      const newCVs: CV[] = files.map((file) => ({
         id: Math.random().toString(36).substr(2, 9),
         name: file.name,
         size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadDate: new Date().toISOString().split('T')[0],
         isLoading: true,
-        downloadUrl: URL.createObjectURL(file)
+        downloadUrl: URL.createObjectURL(file),
       }));
 
       const targetPage = Math.ceil((cvs.length + newCVs.length) / itemsPerPage);
       setCvs(prev => [...prev, ...newCVs]);
       setCurrentPage(targetPage);
 
-      // Simulate loading state for each CV
-      newCVs.forEach(async (cv) => {
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 1500));
-        setCvs(prev => 
-          prev.map(item => 
-            item.id === cv.id ? { ...item, isLoading: false } : item
-          )
-        );
-      });
+      // Extract real text from each PDF so it can be embedded for matching later
+      await Promise.all(
+        files.map(async (file, index) => {
+          const cv = newCVs[index];
+          let text = "";
+          try {
+            text = await extractPdfText(file);
+          } catch (err) {
+            console.error(`Failed to extract text from ${file.name}:`, err);
+          }
+          setCvs(prev =>
+            prev.map(item =>
+              item.id === cv.id ? { ...item, isLoading: false, text } : item
+            )
+          );
+        })
+      );
 
       toast({
         title: "Success",
-        description: `${newCVs.length} CV${newCVs.length > 1 ? 's' : ''} uploaded successfully!`,
+        description: `${newCVs.length} CV${newCVs.length > 1 ? 's' : ''} uploaded and processed successfully!`,
         className: "bg-green-600 text-white",
       });
     }
