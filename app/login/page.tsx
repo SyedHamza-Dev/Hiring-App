@@ -26,6 +26,7 @@ import {
   Check,
   ChevronRight,
   Shield,
+  KeyRound,
 } from "lucide-react";
 
 interface RandomAngle {
@@ -422,6 +423,24 @@ export default function Home() {
 
                 <CardContent>
                   <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminUser("admin");
+                        setAdminPassword("password");
+                      }}
+                      className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100 text-left hover:bg-blue-100 transition-colors"
+                    >
+                      <span className="flex items-center gap-2 text-sm text-blue-700">
+                        <KeyRound className="h-4 w-4 shrink-0" />
+                        Demo credentials — <strong>admin</strong> /{" "}
+                        <strong>password</strong>
+                      </span>
+                      <span className="text-xs font-medium text-blue-600 shrink-0">
+                        Use these
+                      </span>
+                    </button>
+
                     {error && (
                       <motion.div
                         key="error-message"
@@ -620,6 +639,24 @@ export default function Home() {
 
                 <CardContent>
                   <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminUser("admin");
+                        setAdminPassword("password");
+                      }}
+                      className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100 text-left hover:bg-blue-100 transition-colors"
+                    >
+                      <span className="flex items-center gap-2 text-sm text-blue-700">
+                        <KeyRound className="h-4 w-4 shrink-0" />
+                        Demo credentials — <strong>admin</strong> /{" "}
+                        <strong>password</strong>
+                      </span>
+                      <span className="text-xs font-medium text-blue-600 shrink-0">
+                        Use these
+                      </span>
+                    </button>
+
                     {error && (
                       <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm flex items-start">
                         <div className="mr-2 mt-0.5">
