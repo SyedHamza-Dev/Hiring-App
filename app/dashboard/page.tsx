@@ -1,7 +1,6 @@
 "use client";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import Candidates from "@/components/Candidates";
 import DashboardContent from "@/components/Dashboard";
 import JobDescriptions from "@/components/JobDescriptions";
 import UploadCV from "@/components/UploadCV";
@@ -16,7 +15,6 @@ function DashboardContentWithParams() {
       {activeTab === "dashboard" && <DashboardContent />}
       {activeTab === "upload" && <UploadCV />}
       {activeTab === "jobs" && <JobDescriptions />}
-      {activeTab === "candidates" && <Candidates />}
     </>
   );
 }

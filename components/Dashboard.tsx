@@ -56,7 +56,7 @@ export default function DashboardContent() {
       {/* Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metrics.map((metric, idx) => (
-          <Card key={idx} className="hover:shadow-lg transition-shadow">
+          <Card key={idx} className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <metric.icon className={`h-8 w-8 ${metric.color}`} />
@@ -78,7 +78,7 @@ export default function DashboardContent() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 border-gray-200 shadow-sm">
           <CardHeader>
             <CardTitle>Performance Analytics</CardTitle>
             <CardDescription>CV processing and matching efficiency over time</CardDescription>

@@ -68,6 +68,31 @@ interface CandidateResult {
   error?: string;
 }
 
+// Turns the raw score + skill lists into a plain-English verdict instead of
+// a bare number, so a recruiter can tell at a glance *why* a CV scored the
+// way it did.
+function buildVerdict(candidate: CandidateResult, jobTitle: string): string {
+  const { score, matchedSkills, missingSkills } = candidate;
+  const matched = matchedSkills.join(", ");
+  const missing = missingSkills.join(", ");
+
+  if (score >= 70) {
+    return missingSkills.length === 0
+      ? `Strong match for ${jobTitle}. The resume covers every required skill: ${matched}.`
+      : `Strong match for ${jobTitle}. The resume shows ${matched}, though it doesn't mention ${missing}.`;
+  }
+
+  if (score >= 45) {
+    return matchedSkills.length > 0
+      ? `Partial match for ${jobTitle}. It shows ${matched}, but doesn't mention ${missing} — worth a closer look rather than an automatic pass.`
+      : `Partial match for ${jobTitle} based on overall wording, but none of the required skills (${missing}) appear directly in the resume.`;
+  }
+
+  return missingSkills.length > 0
+    ? `Weak match for ${jobTitle}. The resume doesn't mention ${missing}, and its overall content reads as unrelated to this role.`
+    : `Weak match for ${jobTitle} — the resume's content is not semantically close to this job description.`;
+}
+
 const ScanCV = () => {
   return (
     <Suspense
@@ -272,8 +297,46 @@ const ScanCVContent = () => {
 
   if (!selectedJob) return <div className="p-6">Loading...</div>;
 
+  const currentStep = showJobCard ? 1 : analyzed ? 3 : 2;
+  const steps = [
+    { n: 1, label: "Job description", icon: Briefcase },
+    { n: 2, label: "Select CVs", icon: Upload },
+    { n: 3, label: "AI results", icon: Sparkles },
+  ];
+
   return (
     <div className="max-w-4xl mx-auto p-3 md:p-6">
+      {/* Step indicator ties the job → CVs → results flow together visually */}
+      <div className="flex items-center gap-2 mb-6 overflow-x-auto">
+        {steps.map((step, i) => {
+          const done = currentStep > step.n;
+          const active = currentStep === step.n;
+          return (
+            <div key={step.n} className="flex items-center shrink-0">
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  active
+                    ? "bg-blue-600 text-white"
+                    : done
+                    ? "bg-blue-50 text-blue-700"
+                    : "bg-gray-100 text-gray-400"
+                }`}
+              >
+                <step.icon className="w-3.5 h-3.5" />
+                {step.label}
+              </div>
+              {i < steps.length - 1 && (
+                <div
+                  className={`w-6 sm:w-10 h-px mx-1 ${
+                    done ? "bg-blue-300" : "bg-gray-200"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       <AnimatePresence mode="wait">
         {showJobCard ? (
           <motion.div
@@ -289,7 +352,7 @@ const ScanCVContent = () => {
               </h2>
             </div>
 
-            <Card className="p-4 md:p-6 hover:shadow-lg transition-all duration-300">
+            <Card className="p-4 md:p-6 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
               <div className="flex flex-col md:flex-row md:items-center justify-between border-b pb-4 gap-4">
                 <div className="flex items-center space-x-4 flex-1">
                   <div className="bg-blue-50 p-3 rounded-lg">
@@ -446,7 +509,11 @@ const ScanCVContent = () => {
                         {candidate.error}
                       </div>
                     ) : (
-                      <div className="flex gap-2 flex-wrap">
+                      <>
+                        <p className="text-xs text-gray-500 mb-2 line-clamp-2">
+                          {buildVerdict(candidate, selectedJob.title)}
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
                         {candidate.matchedSkills.map((skill) => (
                           <Badge key={skill} className="text-xs bg-blue-500">
                             {skill}
@@ -461,7 +528,8 @@ const ScanCVContent = () => {
                             {skill}
                           </Badge>
                         ))}
-                      </div>
+                        </div>
+                      </>
                     )}
                   </motion.div>
                 ))}
@@ -718,15 +786,24 @@ const ScanCVContent = () => {
                   <CardContent className="p-4">
                     <h3 className="text-sm font-semibold flex items-center gap-2 mb-2">
                       <Sparkles className="h-5 w-5 text-blue-600" />
-                      Semantic Match Analysis
+                      Match Analysis
                     </h3>
-                    <p className="text-xs text-gray-500 mb-3">
-                      Score is the cosine similarity between the job
-                      description and the resume text, both embedded with{" "}
-                      <code>sentence-transformers/all-MiniLM-L6-v2</code>.
-                      It reflects overall semantic relevance, not a
-                      guaranteed hiring outcome.
+                    <p className="text-sm text-gray-700 mb-3">
+                      {buildVerdict(selectedCandidate, selectedJob.title)}
                     </p>
+                    <details className="mb-3 group">
+                      <summary className="text-xs text-blue-600 cursor-pointer select-none w-fit">
+                        How is this score calculated?
+                      </summary>
+                      <p className="text-xs text-gray-500 mt-2">
+                        The job description and this resume are both
+                        embedded with{" "}
+                        <code>sentence-transformers/all-MiniLM-L6-v2</code>{" "}
+                        and compared with cosine similarity. It&apos;s a
+                        relative relevance signal for ranking candidates, not
+                        a calibrated pass/fail probability.
+                      </p>
+                    </details>
 
                     {selectedCandidate.matchedSkills.length > 0 && (
                       <div className="mb-3">

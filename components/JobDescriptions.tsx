@@ -176,7 +176,7 @@ const JobDescriptionsList = () => {
       </div>
 
       {/* Responsive Card for All Jobs */}
-      <Card className="p-3 sm:p-6 hover:shadow-lg transition-shadow duration-200">
+      <Card className="p-3 sm:p-6 border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
         <div className="grid gap-4">
           {currentJobs.map((job) => (
             <div

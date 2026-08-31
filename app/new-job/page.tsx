@@ -100,19 +100,15 @@ const JobFormContent = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <Card className="border border-gray-200 shadow-xl rounded-lg overflow-hidden">
-        {/* Fixed header with better contrast and visibility */}
-        <CardHeader
-          className="space-y-2 bg-gradient-to-r bg-gradient-to-br from-gray-700 to-gray-900
- border-b p-6"
-        >
+      <Card className="border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+        <CardHeader className="space-y-1 bg-blue-50 border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-white">
+            <CardTitle className="text-xl font-semibold text-gray-900">
               Create New Job Description
             </CardTitle>
-            <Briefcase className="h-6 w-6 text-white" />
+            <Briefcase className="h-5 w-5 text-blue-600" />
           </div>
-          <CardDescription className="text-sm text-blue-100">
+          <CardDescription className="text-sm text-gray-500">
             Complete the form below to create a professional job posting
           </CardDescription>
         </CardHeader>

@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckSquare, Cloud, Download, Plus, Square, Trash2, Upload } from "lucide-react";
+import { CheckSquare, Cloud, Download, FileStack, Plus, Square, Trash2, Upload } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { BiSolidFilePdf } from "react-icons/bi";
 import { extractPdfText } from "@/lib/pdf";
@@ -54,13 +54,6 @@ const CVManagementSystem = () => {
   const { toast } = useToast();
   const itemsPerPage = 4;
 
-  const dummyCVs: CV[] = [
-    { id: "d1", name: "resume_john_smith.pdf", size: "2.4 MB", uploadDate: "2024-02-20" },
-    { id: "d2", name: "sarah_wilson_cv.pdf", size: "1.8 MB", uploadDate: "2024-02-19" },
-    { id: "d3", name: "michael_brown_resume.pdf", size: "3.1 MB", uploadDate: "2024-02-18" },
-    { id: "d4", name: "emma_davis_cv.pdf", size: "2.2 MB", uploadDate: "2024-02-17" },
-  ];
-
   useEffect(() => {
     const savedCVs = sessionStorage.getItem("uploadedCVs");
     if (savedCVs) {
@@ -89,9 +82,9 @@ const CVManagementSystem = () => {
         downloadUrl: URL.createObjectURL(file),
       }));
 
-      const targetPage = Math.ceil((cvs.length + newCVs.length) / itemsPerPage);
-      setCvs(prev => [...prev, ...newCVs]);
-      setCurrentPage(targetPage);
+      // Newest uploads go first, so they show up on page 1 right away
+      setCvs(prev => [...newCVs, ...prev]);
+      setCurrentPage(1);
 
       // Extract real text from each PDF so it can be embedded for matching later
       await Promise.all(
@@ -169,46 +162,70 @@ const CVManagementSystem = () => {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil((cvs.length + dummyCVs.length) / itemsPerPage));
-  
+  const totalPages = Math.max(1, Math.ceil(cvs.length / itemsPerPage));
+
   const getCurrentPageItems = () => {
-    const allCVs = [...dummyCVs, ...cvs];
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return allCVs.slice(startIndex, endIndex);
+    return cvs.slice(startIndex, endIndex);
   };
 
   return (
     <TooltipProvider>
-      <div className="max-w-4xl mx-auto p-2 sm:p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3">
-      <div className="flex items-center gap-2 sm:gap-4 pl-6 sm:pl-4">
-  <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">CV Management</h2>
-</div>
-  
-  <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-    {selectedCVs.length > 0 && (
-      <Button
-        variant="destructive"
-        onClick={() => setIsDeleteDialogOpen(true)}
-        className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm w-full sm:w-auto"
-        size="sm"
-      >
-        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-        Delete ({selectedCVs.length})
-      </Button>
-    )}
-    <Button
-      onClick={() => setIsDialogOpen(true)}
-      className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm w-full sm:w-auto"
-      size="sm"
-    >
-      <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Add New CV
-    </Button>
-  </div>
-</div>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">CV Management</h2>
+            <p className="text-sm text-gray-500 mt-0.5">
+              Upload real PDF resumes — the AI matcher only scans documents
+              uploaded here.
+            </p>
+          </div>
 
-        <Card className="p-2 sm:p-4 md:p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            {selectedCVs.length > 0 && (
+              <Button
+                variant="destructive"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm w-full sm:w-auto"
+                size="sm"
+              >
+                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                Delete ({selectedCVs.length})
+              </Button>
+            )}
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm w-full sm:w-auto"
+              size="sm"
+            >
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" /> Add New CV
+            </Button>
+          </div>
+        </div>
+
+        {cvs.length === 0 ? (
+          <Card className="p-12 border-dashed border-gray-200 shadow-none flex flex-col items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-3">
+              <FileStack className="w-6 h-6 text-blue-500" />
+            </div>
+            <p className="text-sm font-medium text-gray-700">
+              No CVs uploaded yet
+            </p>
+            <p className="text-xs text-gray-400 mt-1 max-w-xs">
+              Add PDF resumes here, then go to Job Descriptions → Scan CV to
+              match them against a role.
+            </p>
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white mt-4"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add New CV
+            </Button>
+          </Card>
+        ) : (
+        <Card className="p-2 sm:p-4 md:p-6 border-gray-200 shadow-sm">
           <div className="space-y-2 sm:space-y-4">
             <AnimatePresence mode="wait">
               {getCurrentPageItems().map((cv) => (
@@ -338,21 +355,24 @@ const CVManagementSystem = () => {
             </AnimatePresence>
           </div>
         </Card>
+        )}
 
         {/* Pagination */}
-        <div className="flex justify-center flex-wrap gap-1 sm:gap-2 mt-4 sm:mt-6">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <Button
-              key={i + 1}
-              variant={currentPage === i + 1 ? "default" : "outline"}
-              size="sm"
-              onClick={() => setCurrentPage(i + 1)}
-              className={`min-w-[2rem] sm:min-w-[2.5rem] h-8 text-xs sm:text-sm px-2 ${currentPage === i + 1 ? "bg-blue-600" : ""}`}
-            >
-              {i + 1}
-            </Button>
-          ))}
-        </div>
+        {cvs.length > itemsPerPage && (
+          <div className="flex justify-center flex-wrap gap-1 sm:gap-2 mt-4 sm:mt-6">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <Button
+                key={i + 1}
+                variant={currentPage === i + 1 ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(i + 1)}
+                className={`min-w-[2rem] sm:min-w-[2.5rem] h-8 text-xs sm:text-sm px-2 ${currentPage === i + 1 ? "bg-blue-600" : ""}`}
+              >
+                {i + 1}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {/* Delete Dialog */}
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
